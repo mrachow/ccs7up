@@ -35,6 +35,8 @@ set_time_limit(600);
 // Start a timer for the log.
 $starttime = microtime(true);
 
+define("PHP_EOL_BOTH", "\r\n");
+
 $ChangesCounter = 0;
 
 // Determine if the current page has been published without updates. If so, make the changes
@@ -86,7 +88,7 @@ if ($ChangesCounter > 0) {
 // as an array. So see if that's been done already.
 $CommonFile = dirname(__FILE__) . "/Common.php";
 $CommonContents = file_get_contents($CommonFile);
-$CommonString = 'function CCGetListValues(&$db, $sql, $where = "", $order_by = "", $bound_column = "", $text_column = "", $dbformat = "", $datatype = "", $errorclass = "", $fieldname = "", $DSType = dsSQL)' . PHP_EOL . '{' . PHP_EOL . '    $errors = new clsErrors();' . PHP_EOL . '    $values = array()';
+$CommonString = 'function CCGetListValues(&$db, $sql, $where = "", $order_by = "", $bound_column = "", $text_column = "", $dbformat = "", $datatype = "", $errorclass = "", $fieldname = "", $DSType = dsSQL)' . PHP_EOL_BOTH . '{' . PHP_EOL_BOTH . '    $errors = new clsErrors();' . PHP_EOL_BOTH . '    $values = array()';
 $CommonStringQuoted = preg_quote($CommonString, '/');
 if (preg_match('/' . $CommonStringQuoted . '/i', $CommonContents)) {
 	return; //No updates needed. Goodbye.
@@ -176,9 +178,11 @@ foreach ($files as $dirKey => $dirVal) {
 } // end of foreach file found.
 
 // Results from full scan.
-$content = "[" . date("Y-m-d H:i:s") . "] " . $PHPFileCount . " CodeCharge PHP files scanned with " . $ChangesCounter . " changes made in " . round(microtime(true)-$starttime,1) . " seconds.\n";
-CCS7Up_Log($content);
-header('Location: ' . $_SERVER['REQUEST_URI']); exit; //need to reload the page.
+if ($ChangesCounter > 0) {
+	$content = "[" . date("Y-m-d H:i:s") . "] " . $PHPFileCount . " CodeCharge PHP files scanned with " . $ChangesCounter . " changes made in " . round(microtime(true)-$starttime,1) . " seconds.\n";
+	CCS7Up_Log($content);
+	header('Location: ' . $_SERVER['REQUEST_URI']); exit; //need to reload the page.
+}
 
 //** Local functions in alpha order:
 
@@ -379,9 +383,9 @@ function CCS7Up_FixCommonFiles($CCSFileName, $CCSFile, $CCSFileContents) {
 	// Replace each() functions in Classes.php to use foreach().
 	if (preg_match('/Classes.php$/i', $CCSFile)) {
 		$occurences = null; //reset
-		$each4_pattern = preg_quote('while ($blnResult && list ($key, $Parameter) = each ($this->Parameters)) ' . PHP_EOL . '      {', '/');
+		$each4_pattern = preg_quote('while ($blnResult && list ($key, $Parameter) = each ($this->Parameters)) ' . PHP_EOL_BOTH . '      {', '/');
 		if (preg_match( '/' . $each4_pattern . '/i', $CCSFileResult)) {
-			$CCSFileResult = preg_replace('/' . $each4_pattern . '/i', 'foreach ($this->Parameters as $key => $Parameter) {' . PHP_EOL . '        if (!$blnResult)' . PHP_EOL . '          continue;', $CCSFileResult, 1, $occurences);
+			$CCSFileResult = preg_replace('/' . $each4_pattern . '/i', 'foreach ($this->Parameters as $key => $Parameter) {' . PHP_EOL_BOTH . '        if (!$blnResult)' . PHP_EOL_BOTH . '          continue;', $CCSFileResult, 1, $occurences);
 			if ($occurences) {
 				$content = "[" . date("Y-m-d H:i:s") . "] Fixed " . $occurences . " occurences of each (\$this->Parameters) with foreach in " . $CCSFile . ".\n";
 				CCS7Up_Log($content);
@@ -569,7 +573,7 @@ function CCS7Up_FixCommonFiles($CCSFileName, $CCSFile, $CCSFileContents) {
 	// the entire project needs to be scanned and updated.
 	if (preg_match('/(common.php|commonserv.php)$/i', $CCSFile)) {
 		$occurences = null; //reset
-		$str222 = 'function CCGetListValues(&$db, $sql, $where = "", $order_by = "", $bound_column = "", $text_column = "", $dbformat = "", $datatype = "", $errorclass = "", $fieldname = "", $DSType = dsSQL)' . PHP_EOL . '{' . PHP_EOL . '    $errors = new clsErrors();' . PHP_EOL . '    $values = ';
+		$str222 = 'function CCGetListValues(&$db, $sql, $where = "", $order_by = "", $bound_column = "", $text_column = "", $dbformat = "", $datatype = "", $errorclass = "", $fieldname = "", $DSType = dsSQL)' . PHP_EOL_BOTH . '{' . PHP_EOL_BOTH . '    $errors = new clsErrors();' . PHP_EOL_BOTH . '    $values = ';
 		$str222_pattern = preg_quote($str222, '/');
 		if (preg_match('/' . $str222_pattern . '("")' . '/i', $CCSFileResult)) {
 			$CCSFileResult = preg_replace( '/' . $str222_pattern . '("")' . '/i', $str222 . "array()", $CCSFileResult, 1, $occurences);
